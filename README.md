@@ -1,4 +1,8 @@
 # EXP-6---Matrix-multiplication-using-cuBLAS-in-CUDA-C-
+<h3>NAME:Yuvabharathi B</h3> 
+<h3>REGISTER NO:212222230181</h3> 
+<h3>EX. NO:06</h3> 
+<h3>DATE:</h3>
 
 # Objective
 To implement matrix multiplication on the GPU using the cuBLAS library in CUDA C, and analyze the performance improvement over CPU-based matrix multiplication by leveraging GPU acceleration.
@@ -45,10 +49,90 @@ Measure the execution time of matrix multiplication using the cuBLAS library wit
 Experiment with varying block sizes (e.g., 16, 32, 64 threads per block) and analyze their effect on execution time.
 Compare the performance of the GPU-based matrix multiplication using cuBLAS with a standard CPU-based matrix multiplication implementation.
 # PROGRAM:
-TYPE YOUR CODE HERE
+```
+code = """
+#include <stdio.h>
+#include <stdlib.h>
+#include <cuda_runtime.h>
+#include <cublas_v2.h>
+
+#define MATRIX_SIZE 1024
+
+void fillMatrix(float *matrix, int rows, int cols) {
+    for (int i = 0; i < rows * cols; i++) {
+        matrix[i] = (float)(rand() % 100) / 10.0f;
+    }
+}
+
+void printMatrix(float *matrix, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%0.2f ", matrix[i * cols + j]);
+        }
+        printf("\\n");
+    }
+    printf("\\n");
+}
+
+int main() {
+    float *h_A, *h_B, *h_C;
+    float *d_A, *d_B, *d_C;
+    int size = MATRIX_SIZE * MATRIX_SIZE * sizeof(float);
+
+    h_A = (float *)malloc(size);
+    h_B = (float *)malloc(size);
+    h_C = (float *)malloc(size);
+
+    fillMatrix(h_A, MATRIX_SIZE, MATRIX_SIZE);
+    fillMatrix(h_B, MATRIX_SIZE, MATRIX_SIZE);
+
+    cudaMalloc((void **)&d_A, size);
+    cudaMalloc((void **)&d_B, size);
+    cudaMalloc((void **)&d_C, size);
+
+    cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
+
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+
+    const float alpha = 1.0f;
+    const float beta = 0.0f;
+
+    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, MATRIX_SIZE, MATRIX_SIZE, MATRIX_SIZE, 
+                &alpha, d_A, MATRIX_SIZE, d_B, MATRIX_SIZE, &beta, d_C, MATRIX_SIZE);
+
+    cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost);
+
+    printf("Matrix A:\\n");
+    printMatrix(h_A, MATRIX_SIZE, MATRIX_SIZE);
+    printf("Matrix B:\\n");
+    printMatrix(h_B, MATRIX_SIZE, MATRIX_SIZE);
+    printf("Matrix C (Result):\\n");
+    printMatrix(h_C, MATRIX_SIZE, MATRIX_SIZE);
+
+    cudaFree(d_A);
+    cudaFree(d_B);
+    cudaFree(d_C);
+    free(h_A);
+    free(h_B);
+    free(h_C);
+    cublasDestroy(handle);
+
+    return 0;
+}
+"""
+with open('matrix_mul.cu', 'w') as f:
+    f.write(code)
+```
+```
+!nvcc matrix_mul.cu -o matrix_mul -lcublas
+!./matrix_mul
+```
 
 # OUTPUT:
-SHOW YOUR OUTPUT HERE
+![image](https://github.com/user-attachments/assets/a53cb317-9475-4bce-b538-091fad8a2cfc)
+
 
 # RESULT:
 
